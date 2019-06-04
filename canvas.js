@@ -1,41 +1,75 @@
-let canvas = document.querySelector('canvas');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// import * as dat from 'node_modules/dat.gui/build/dat.gui.min.js'
 
-let c = canvas.getContext('2d');
+const gui = new dat.GUI();
 
-// Rectangles
-c.fillStyle = 'rgba(255, 0, 0, 0.5)';
-c.fillRect(100, 100, 100, 100);
+const canvas = document.querySelector('canvas');
+const c = canvas.getContext('2d');
 
-c.fillStyle = 'rgba(255, 50, 0, 0.5)';
-c.fillRect(400, 100, 100, 100);
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
-c.fillStyle = 'rgba(255, 50, 100, 0.5)';
-c.fillRect(300, 300, 100, 100);
+const wave = {
+	y : canvas.height / 2,
+	length : 0.01,
+	amplitude : 100,
+	frequency : 0.01,
+}
 
-console.log(canvas);
+const strokeColor = {
+	h: 200,
+	s: 50,
+	l: 50
+}
 
-// Lines
-c.beginPath();
-c.moveTo(50, 300);
-c.lineTo(300, 100);
-c.lineTo(400, 300);
-c.strokeStyle = 'firebrick';
-c.stroke();
+const backgroundColor = {
+	r: 0,
+	g: 0,
+	b: 0,
+	a: 0.01,
+}
 
-// Circle
-c.beginPath();
-c.arc(300, 300, 30, 0, Math.PI * 2, false);
-c.strokeStyle = 'blue';
-c.stroke();
+const waveFolder = gui.addFolder('wave');
+waveFolder.add(wave, 'y', 0, canvas.height);
+waveFolder.add(wave, 'length', -0.01, 0.01);
+waveFolder.add(wave, 'amplitude', -300, 300);
+waveFolder.add(wave, 'frequency', -0.01, 1);
+waveFolder.open(); // to keep folder opened
 
-for (let i = 0; i < 5; i++) {
-	let x = Math.random() * window.innerWidth;
-	let	y = Math.random() * window.innerHeight;
+const strokeFolder = gui.addFolder('stroke');
+strokeFolder.add(strokeColor, 'h', 0, 255);
+strokeFolder.add(strokeColor, 's', 0, 100);
+strokeFolder.add(strokeColor, 'l', 0, 100);
+strokeFolder.open();
+
+const backgroundFolder = gui.addFolder('background');
+backgroundFolder.add(backgroundColor, 'r', 0, 255);
+backgroundFolder.add(backgroundColor, 'g', 0, 255);
+backgroundFolder.add(backgroundColor, 'b', 0, 255);
+backgroundFolder.add(backgroundColor, 'a', 0, 1);
+backgroundFolder.open();
+
+let increment = wave.frequency;
+
+function animate(){
+	requestAnimationFrame(animate);
+	c.fillStyle = `rgba(${backgroundColor.r}, ${backgroundColor.g}, ${backgroundColor.b}, ${backgroundColor.a})`;
+	c.fillRect(0, 0, canvas.width, canvas.height);
+	// c.clearRect(0, 0, canvas.width, canvas.height);
 
 	c.beginPath();
-	c.arc(x, y, 30, 0, Math.PI * 2, false);
-	c.strokeStyle = 'blue';
+
+	c.moveTo(0, canvas.height / 2);
+
+	// created for loop because without it only two end points of line are controlable.
+	// instead of that  code : c.lineTo(canvas.width, canvas.height / 2);
+	// with for loop we say that every pixel of line is controllable point. And line is consist of multiple points.
+	for (var i = 0; i < canvas.width; i++) {
+	    c.lineTo(i, wave.y + Math.sin(i * wave.length + increment) * wave.amplitude * Math.sin(increment));
+	}
+
+	c.strokeStyle = `hsl(${strokeColor.h}, ${strokeColor.s}%, ${strokeColor.l}%)`;
 	c.stroke();
+	increment += wave.frequency;
 }
+
+animate();
